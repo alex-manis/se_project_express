@@ -1,15 +1,102 @@
-const Director = require("../models/director");
+const Item = require("../models/clothingItem");
+const {
+  BAD_REQUEST,
+  NOT_FOUND,
+  INTERNAL_SERVER_ERROR,
+} = require("../utils/errors");
 
-module.exports.getDirectors = (req, res) => {
-  Director.find({})
-    .then((directors) => res.send({ data: directors }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+module.exports.getItems = (req, res) => {
+  Item.find({})
+    .orFail()
+    .then((items) => res.status(200).send({ data: items }))
+    .catch((err) =>
+      res.status(INTERNAL_SERVER_ERROR).send({ message: "Get Item failed" })
+    );
 };
 
-module.exports.createDirector = (req, res) => {
-  const { name } = req.body;
+module.exports.createItem = (req, res) => {
+  const { name, weather, imageUrl } = req.body;
 
-  Director.create({ name })
-    .then((director) => res.send({ data: director }))
-    .catch((err) => res.status(500).send({ message: err.message }));
+  Item.create({ name, weather, imageUrl, owner: req.user._id })
+    .then((item) => res.status(201).send({ data: item }))
+    .catch((err) => {
+      console.error(err);
+      if (err.name === "ValidationError") {
+        return res
+          .status(BAD_REQUEST)
+          .send({ message: "Create Item Validation error" });
+      }
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "Create Item failed" });
+    });
+};
+
+module.exports.deleteItem = (req, res) => {
+  const { itemId } = req.params;
+
+  Item.findByIdAndDelete(itemId)
+    .orFail()
+    .then((item) => res.status(200).send({ data: item }))
+    .catch((err) => {
+      console.error(err);
+
+      if (err.name === "CastError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid item id" });
+      }
+
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(NOT_FOUND).send({ message: "Item not found" });
+      }
+
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "Delete item error" });
+    });
+};
+
+module.exports.likeItem = (req, res) => {
+  const { itemId } = req.params;
+
+  Item.findByIdAndUpdate(
+    itemId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true }
+  )
+    .orFail()
+    .then(() => res.status(200).send({ message: "Item liked successfully" }))
+    .catch((err) => {
+      if (err.name === "CastError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid item id" });
+      }
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(NOT_FOUND).send({ message: "Item not found" });
+      }
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "Like item failed" });
+    });
+};
+
+module.exports.dislikeItem = (req, res) => {
+  const { itemId } = req.params;
+
+  Item.findByIdAndUpdate(
+    itemId,
+    { $pull: { likes: req.user._id } },
+    { new: true }
+  )
+    .orFail()
+    .then(() => res.status(200).send({ message: "Item unliked successfully" }))
+    .catch((err) => {
+      if (err.name === "CastError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid item id" });
+      }
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(NOT_FOUND).send({ message: "Item not found" });
+      }
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .send({ message: "Dislike item failed" });
+    });
 };
