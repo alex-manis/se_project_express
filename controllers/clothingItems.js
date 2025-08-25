@@ -7,7 +7,6 @@ const {
 
 module.exports.getItems = (req, res) => {
   Item.find({})
-    .orFail()
     .then((items) => res.status(200).send({ data: items }))
     .catch((err) => {
       console.error(err);
@@ -65,7 +64,7 @@ module.exports.likeItem = (req, res) => {
     { new: true }
   )
     .orFail()
-    .then(() => res.status(200).send({ message: "Item liked successfully" }))
+    .then((updatedItem) => res.status(200).send({ data: updatedItem }))
     .catch((err) => {
       if (err.name === "CastError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid item id" });
@@ -88,7 +87,7 @@ module.exports.dislikeItem = (req, res) => {
     { new: true }
   )
     .orFail()
-    .then(() => res.status(200).send({ message: "Item unliked successfully" }))
+    .then((updatedItem) => res.status(200).send({ data: updatedItem }))
     .catch((err) => {
       if (err.name === "CastError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid item id" });
