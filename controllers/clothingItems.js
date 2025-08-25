@@ -9,9 +9,10 @@ module.exports.getItems = (req, res) => {
   Item.find({})
     .orFail()
     .then((items) => res.status(200).send({ data: items }))
-    .catch((err) =>
-      res.status(INTERNAL_SERVER_ERROR).send({ message: "Get Item failed" })
-    );
+    .catch((err) => {
+      console.error(err);
+      res.status(INTERNAL_SERVER_ERROR).send({ message: "Get Item failed" });
+    });
 };
 
 module.exports.createItem = (req, res) => {
