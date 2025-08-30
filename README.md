@@ -1,5 +1,7 @@
 # WTWR (What to Wear?):
 
+Last updated: 2025‑08‑30
+
 A backend API for managing clothing items and users. Users can create, like, and delete clothing items.
 
 ## Technologies
@@ -51,13 +53,58 @@ The API will be available at `http://localhost:3001`.
 
 ## API Endpoints
 
+### Authentication
+
+- **POST /signup** – Create a new user
+- **POST /signin** – Log in and receive a JWT token
+
+**Request body example (/signup):**
+
+```json
+{
+  "name": "John Doe",
+  "avatar": "https://example.com/avatar.jpg",
+  "email": "john@example.com",
+  "password": "strongpassword123"
+}
+```
+
+**Response example (/signup):**
+
+```json
+{
+  "data": {
+    "_id": "64f0c7f4a3d2b1a234567890",
+    "name": "John Doe",
+    "avatar": "https://example.com/avatar.jpg",
+    "email": "john@example.com"
+  }
+}
+```
+
+**Request body example (/signin):**
+
+```json
+{
+  "email": "john@example.com",
+  "password": "strongpassword123"
+}
+```
+
+**Response example (/signin):**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
 ### Users
 
-- **GET /users** – Get all users
-- **GET /users/:userId** – Get a user by ID
-- **POST /users** – Create a new user
+- **GET /user/me** – Get current user
+- **PATCH /users/me** – Update current user (name and avatar)
 
-**POST request body example:**
+**Request body example (PATCH /users/me):**
 
 ```json
 {
@@ -66,14 +113,15 @@ The API will be available at `http://localhost:3001`.
 }
 ```
 
-**GET /users/:userId response example:**
+**Response example (GET /users/me):**
 
 ```json
 {
   "data": {
     "_id": "64f0c7f4a3d2b1a234567890",
     "name": "John Doe",
-    "avatar": "https://example.com/avatar.jpg"
+    "avatar": "https://example.com/avatar.jpg",
+    "email": "john@example.com"
   }
 }
 ```
@@ -151,7 +199,10 @@ The API will be available at `http://localhost:3001`.
 ## Error Handling
 
 - `400` – Bad request: invalid data or invalid ID
+- `401` – Unauthorized: invalid or missing JWT token
+- `403` – Forbidden: trying to delete another user’s item
 - `404` – Not found: user/item does not exist or route does not exist
+- `409` – Conflict: duplicate email during signup
 - `500` – Internal server error
 
 All error responses have the format:
@@ -170,3 +221,4 @@ All error responses have the format:
 - Likes are stored as an array of user IDs.
 - The API returns updated item objects when likes are added or removed.
 - For list endpoints, empty arrays are returned when no data exists.
+- Authentication is required for all routes except /signup and /signin.

@@ -28,26 +28,6 @@ module.exports.getCurrentUser = (req, res) => {
     });
 };
 
-module.exports.getUser = (req, res) => {
-  const { userId } = req.params;
-  User.findById(userId)
-    .orFail()
-    .then((user) => res.status(200).send({ data: user }))
-    .catch((err) => {
-      console.error(err);
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "User not found" });
-      }
-      if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid user id" });
-      }
-
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "Get user by ID error" });
-    });
-};
-
 module.exports.createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
 
