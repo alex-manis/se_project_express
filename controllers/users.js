@@ -17,7 +17,7 @@ module.exports.getCurrentUser = (req, res) => {
       if (!user) {
         return res.status(NOT_FOUND).send({ message: "User not found" });
       }
-      return res.status(200).send({ data: user });
+      return res.send({ data: user });
     })
     .catch((err) => {
       console.error(err);
@@ -83,7 +83,7 @@ module.exports.updateUser = (req, res) => {
       if (!user) {
         return res.status(NOT_FOUND).send({ message: "User not found" });
       }
-      return res.status(200).send({ data: user });
+      return res.send({ data: user });
     })
     .catch((err) => {
       console.error(err);
