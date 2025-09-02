@@ -1,14 +1,13 @@
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const {
   BAD_REQUEST,
   NOT_FOUND,
   INTERNAL_SERVER_ERROR,
-  UNAUTHORIZED,
   CONFLICT,
 } = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
-const jwt = require("jsonwebtoken");
 
 module.exports.getCurrentUser = (req, res) => {
   const userId = req.user._id;
@@ -117,9 +116,11 @@ module.exports.login = (req, res) => {
       res.send({ token });
     })
     .catch((err) => {
-      console.error(err);
+      if (err.message === "Incorrect email or password") {
+        return res.status(401).send({ message: "Incorrect email or password" });
+      }
       return res
-        .status(UNAUTHORIZED)
-        .send({ message: "Incorrect email or password" });
+        .status(500)
+        .send({ message: "An error has occurred on the server." });
     });
 };

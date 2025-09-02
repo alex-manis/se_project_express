@@ -60,42 +60,4 @@ userSchema.statics.findUserByCredentials = function findUserByCredentials(
     });
 };
 
-const User = require("../models/user");
-const {
-  NOT_FOUND,
-  BAD_REQUEST,
-  INTERNAL_SERVER_ERROR,
-} = require("../utils/errors");
-
-module.exports.updateUser = (req, res) => {
-  const { name, avatar } = req.body;
-  const userId = req.user._id;
-
-  User.findByIdAndUpdate(
-    userId,
-    { name, avatar },
-    {
-      new: true,
-      runValidators: true,
-    }
-  )
-    .then((user) => {
-      if (!user) {
-        return res.status(NOT_FOUND).send({ message: "User not found" });
-      }
-      return res.status(200).send({ data: user });
-    })
-    .catch((err) => {
-      console.error(err);
-      if (err.name === "ValidationError") {
-        return res
-          .status(BAD_REQUEST)
-          .send({ message: "Update user validation error" });
-      }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "Update user error" });
-    });
-};
-
 module.exports = mongoose.model("user", userSchema);
