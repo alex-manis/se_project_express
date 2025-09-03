@@ -5,6 +5,7 @@ const {
   BAD_REQUEST,
   NOT_FOUND,
   INTERNAL_SERVER_ERROR,
+UNAUTHORIZED
   CONFLICT,
 } = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
@@ -117,10 +118,10 @@ module.exports.login = (req, res) => {
     })
     .catch((err) => {
       if (err.message === "Incorrect email or password") {
-        return res.status(401).send({ message: "Incorrect email or password" });
+        return res.status(UNAUTHORIZED).send({ message: "Incorrect email or password" });
       }
       return res
-        .status(500)
+        .status(INTERNAL_SERVER_ERROR)
         .send({ message: "An error has occurred on the server." });
     });
 };
