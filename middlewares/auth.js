@@ -20,6 +20,6 @@ module.exports = (req, res, next) => {
       .send({ message: "Invalid or expired token" });
   }
 
-  req.user = payload; // добавляем payload в объект запроса
+  req.user = payload;
   return next();
 };
