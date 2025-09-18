@@ -1,9 +1,12 @@
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-
+const errorHandler = require("./middlewares/error-handler");
 const mainRouter = require("./routes/index");
-const { NOT_FOUND } = require("./utils/errors");
+const { NotFoundError } = require("./utils/errors");
+const { errors } = require("celebrate");
+const { requestLogger, errorLogger } = require("./middlewares/logger");
 
 const app = express();
 const { PORT = 3001 } = process.env;
@@ -23,13 +26,18 @@ app.use(
   })
 );
 app.use(express.json());
-app.use("/", mainRouter);
 
-app.use((req, res) => {
-  res.status(NOT_FOUND).send({ message: "Requested resource not found" });
+app.use(requestLogger);
+app.use("/", mainRouter);
+app.use(errorLogger);
+app.use((req, res, next) => {
+  next(new NotFoundError("Requested resource not found"));
 });
 
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`App listening at port ${PORT}`);
 });
+
+app.use(errors());
+app.use(errorHandler);

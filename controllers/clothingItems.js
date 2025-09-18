@@ -1,21 +1,20 @@
 const Item = require("../models/clothingItem");
 const {
-  BAD_REQUEST,
-  NOT_FOUND,
-  INTERNAL_SERVER_ERROR,
-  FORBIDDEN,
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
 } = require("../utils/errors");
 
-module.exports.getItems = (req, res) => {
+module.exports.getItems = (req, res, next) => {
   Item.find({})
     .then((items) => res.send({ data: items }))
     .catch((err) => {
       console.error(err);
-      res.status(INTERNAL_SERVER_ERROR).send({ message: "Get Item failed" });
+      next(err);
     });
 };
 
-module.exports.createItem = (req, res) => {
+module.exports.createItem = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
 
   Item.create({ name, weather, imageUrl, owner: req.user._id })
@@ -23,50 +22,39 @@ module.exports.createItem = (req, res) => {
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
-        return res
-          .status(BAD_REQUEST)
-          .send({ message: "Create Item Validation error" });
+        return next(new BadRequestError("Create Item validation error"));
       }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "Create Item failed" });
+      next(err);
     });
 };
 
-module.exports.deleteItem = (req, res) => {
+module.exports.deleteItem = (req, res, next) => {
   const { itemId } = req.params;
   const currentUserId = req.user._id;
 
   Item.findById(itemId)
     .then((item) => {
       if (!item) {
-        return res.status(NOT_FOUND).send({ message: "Item not found" });
+        throw new NotFoundError("Item not found");
       }
 
       if (item.owner.toString() !== currentUserId) {
-        return res
-          .status(FORBIDDEN)
-          .send({ message: "You cannot delete someone else's item" });
+        throw new ForbiddenError("You cannot delete someone else's item");
       }
 
-      return Item.findByIdAndDelete(itemId).then((deletedItem) =>
-        res.send({ data: deletedItem })
-      );
+      return Item.findByIdAndDelete(itemId);
     })
+    .then((deletedItem) => res.send({ data: deletedItem }))
     .catch((err) => {
       console.error(err);
-
       if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid item id" });
+        return next(new BadRequestError("Invalid item id"));
       }
-
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "Delete item error" });
+      next(err);
     });
 };
 
-module.exports.likeItem = (req, res) => {
+module.exports.likeItem = (req, res, next) => {
   const { itemId } = req.params;
 
   Item.findByIdAndUpdate(
@@ -74,22 +62,18 @@ module.exports.likeItem = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true }
   )
-    .orFail()
+    .orFail(() => new NotFoundError("Item not found"))
     .then((updatedItem) => res.send({ data: updatedItem }))
     .catch((err) => {
+      console.error(err);
       if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid item id" });
+        return next(new BadRequestError("Invalid item id"));
       }
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "Item not found" });
-      }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "Like item failed" });
+      next(err);
     });
 };
 
-module.exports.dislikeItem = (req, res) => {
+module.exports.dislikeItem = (req, res, next) => {
   const { itemId } = req.params;
 
   Item.findByIdAndUpdate(
@@ -97,17 +81,13 @@ module.exports.dislikeItem = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true }
   )
-    .orFail()
+    .orFail(() => new NotFoundError("Item not found"))
     .then((updatedItem) => res.send({ data: updatedItem }))
     .catch((err) => {
+      console.error(err);
       if (err.name === "CastError") {
-        return res.status(BAD_REQUEST).send({ message: "Invalid item id" });
+        return next(new BadRequestError("Invalid item id"));
       }
-      if (err.name === "DocumentNotFoundError") {
-        return res.status(NOT_FOUND).send({ message: "Item not found" });
-      }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .send({ message: "Dislike item failed" });
+      next(err);
     });
 };
