@@ -4,6 +4,11 @@ Last updated: 2025‑08‑30
 
 A backend API for managing clothing items and users. Users can create, like, and delete clothing items.
 
+## Accessing the Application
+
+- [Deployed Backend Domain](https://api.what2wear.undo.it)
+- [Frontend GitHub Repository](https://github.com/alex-manis/se_project_react)
+
 ## Technologies
 
 This project uses the following technologies and libraries:
