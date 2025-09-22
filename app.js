@@ -2,10 +2,10 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const { errors } = require("celebrate");
 const errorHandler = require("./middlewares/error-handler");
 const mainRouter = require("./routes/index");
-const { NotFoundError } = require("./utils/errors");
-const { errors } = require("celebrate");
+const { NotFoundError } = require("./utils/errors/errors");
 const { requestLogger, errorLogger } = require("./middlewares/logger");
 
 const app = express();
@@ -21,13 +21,13 @@ mongoose
 
 app.use(
   cors({
-    origin: function (origin, callback) {
+    origin(origin, callback) {
       const allowedOrigins = [
         "http://localhost:3000",
         "https://what2wear.undo.it",
       ];
       if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) === -1) {
+      if (!allowedOrigins.includes(origin)) {
         return callback(new Error("Not allowed by CORS"), false);
       }
       return callback(null, true);

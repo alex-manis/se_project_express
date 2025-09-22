@@ -6,13 +6,13 @@ const {
   UnauthorizedError,
   NotFoundError,
   ConflictError,
-} = require("../utils/errors");
+} = require("../utils/errors/errors");
 const { JWT_SECRET } = require("../utils/config");
 
 module.exports.getCurrentUser = (req, res, next) => {
   const userId = req.user._id;
 
-  User.findById(userId)
+  return User.findById(userId)
     .then((user) => {
       if (!user) {
         throw new NotFoundError("No user with matching ID found");
@@ -26,7 +26,7 @@ module.exports.getCurrentUser = (req, res, next) => {
           new BadRequestError("The id string is in an invalid format")
         );
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -56,7 +56,7 @@ module.exports.createUser = (req, res, next) => {
       if (err.name === "ValidationError") {
         return next(new BadRequestError("Create user validation error"));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -64,7 +64,7 @@ module.exports.updateUser = (req, res, next) => {
   const { name, avatar } = req.body;
   const userId = req.user._id;
 
-  User.findByIdAndUpdate(
+  return User.findByIdAndUpdate(
     userId,
     { name, avatar },
     {
@@ -83,7 +83,7 @@ module.exports.updateUser = (req, res, next) => {
       if (err.name === "ValidationError") {
         return next(new BadRequestError("Update user validation error"));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -107,6 +107,6 @@ module.exports.login = (req, res, next) => {
       if (err.message === "Incorrect email or password") {
         return next(new UnauthorizedError("Incorrect email or password"));
       }
-      next(err);
+      return next(err);
     });
 };
